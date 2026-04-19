@@ -22,16 +22,18 @@ public class AuthController {
         return ResponseEntity.ok("authService.signup(request);");
     }
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpServletRequest, HttpServletResponse response) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, jakarta.servlet.http.HttpServletRequest httpServletRequest, jakarta.servlet.http.HttpServletResponse response) {
         String token = authService.login(request, httpServletRequest);
 
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt_session", token);
-        cookie.setHttpOnly(true);
-        // Use secure true in production (requires HTTPS)
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(24 * 60 * 60); // 1 day
-        response.addCookie(cookie);
+        org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie.from("jwt_session", token)
+                .httpOnly(true)
+                .secure(true) // Must be true for SameSite=None
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .sameSite("None") // Required for cross-domain cookies (Vercel to Render)
+                .build();
+
+        response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
 
         return ResponseEntity.ok("Login Successful");
     }
@@ -44,19 +46,26 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> logout(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
         String token = null;
         if (request.getCookies() != null) {
             for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
                 if ("jwt_session".equals(cookie.getName())) {
                     token = cookie.getValue();
-                    cookie.setMaxAge(0);
-                    cookie.setPath("/");
-                    response.addCookie(cookie);
                     break;
                 }
             }
         }
+
+        // Clear cookie using ResponseCookie
+        org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie.from("jwt_session", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0) // Immediately expire
+                .sameSite("None")
+                .build();
+        response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
 
         if (token != null) {
             authService.logout(token);
