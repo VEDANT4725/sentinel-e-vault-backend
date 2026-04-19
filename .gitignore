@@ -1,0 +1,26 @@
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Build files
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Docker & Secrets
+docker-compose.yml
+.env
+*.log
+hs_err_pid*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
