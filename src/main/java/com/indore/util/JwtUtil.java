@@ -16,7 +16,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24 Hours
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -25,19 +25,23 @@ public class JwtUtil {
     public String extractEmail(String token){
         return Jwts.parserBuilder()
                 .setSigningKey(key)
+                .setAllowedClockSkewSeconds(60) // Allow 1 min difference
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
-
-
     }
 
     public boolean validateToken(String token){
         try{
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .setAllowedClockSkewSeconds(60)
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         }catch (Exception e){
-            return false;        }
+            return false;
+        }
     }
 }
