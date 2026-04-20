@@ -35,7 +35,12 @@ public class AuthController {
 
         response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString());
 
-        return ResponseEntity.ok("Login Successful");
+        // Return token in body too for devices that block cookies
+        java.util.Map<String, String> body = new java.util.HashMap<>();
+        body.put("token", token);
+        body.put("message", "Login Successful");
+
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping("/verify")
