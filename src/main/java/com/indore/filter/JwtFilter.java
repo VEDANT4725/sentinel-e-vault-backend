@@ -52,17 +52,13 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token != null) {
             if (jwtUtil.validateToken(token)) {
                 Session session = sessionRepository.findByToken(token).orElse(null);
+                if (session != null && session.isActive()) {
+                    String email = jwtUtil.extractEmail(token);
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
 
-                if (session == null || !session.isActive()) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
+                    SecurityContextHolder.getContext().setAuthentication(auth);
                 }
-
-                String email = jwtUtil.extractEmail(token);
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
 
