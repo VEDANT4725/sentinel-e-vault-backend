@@ -43,13 +43,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        String frontendUrl = System.getenv("FRONTEND_URL") != null ? System.getenv("FRONTEND_URL") : "http://localhost:5173";
 
-        configuration.setAllowedOrigins(Arrays.asList(
-                frontendUrl,
-                "https://sentinel-e-vault-frontend.vercel.app",
-                "http://localhost:5174"
+        // Allow common development and production origins
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "https://*.vercel.app",
+                "https://*.onrender.com",
+                "https://sentinel-e-vault-frontend.vercel.app"
         ));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
