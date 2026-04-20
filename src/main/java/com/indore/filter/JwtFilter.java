@@ -31,21 +31,19 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = null;
 
-        // 1. Try to get from Cookie first (more secure)
-        if (request.getCookies() != null) {
+        // 1. Try to get from Authorization Header (Higher Priority)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
+        // 2. Fallback to Cookie
+        if (token == null && request.getCookies() != null) {
             for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
                 if ("jwt_session".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
                 }
-            }
-        }
-
-        // 2. Fallback to Authorization Header (for Postman/backward compatibility)
-        if (token == null) {
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.substring(7);
             }
         }
 
